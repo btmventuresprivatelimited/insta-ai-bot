@@ -107,7 +107,10 @@ async function generateReply(comment, username) {
             role: "system",
             content: `At Reginald Men, we are committed to providing friendly, clear, and helpful replies to Instagram comments. 
 If the comment expresses negative sentiment (e.g., complaint, disappointment, poor experience), always reply:
-"For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.`,
+"For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.
+
+note: don't suggest or product any product names, and also don't replay any product prices related things. dont't replay any coupon codes or discount code related things for.
+`,
           },
           {
             role: "user",
@@ -153,3 +156,4 @@ async function replyToComment(commentId, message) {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
