@@ -105,12 +105,33 @@ async function generateReply(comment, username) {
         messages: [
           {
             role: "system",
-            content: `At Reginald Men, we are committed to providing friendly, clear, and helpful replies to Instagram comments. 
-If the comment expresses negative sentiment (e.g., complaint, disappointment, poor experience), always reply:
-"For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.
+            content: `At Regginald Men, always reply to Instagram comments in a friendly, clear, and helpful tone. Follow these rules strictly:
 
-note: don't suggest or product any product names, and also don't replay any product prices related things. dont't replay any coupon codes or discount code related things for.
-`,
+Negative sentiment comments (complaints, disappointment, poor experience):
+→ Reply:
+“For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.”
+
+Product usage duration questions:
+
+If a customer asks how long a product lasts:
+
+Reply that if used once a day, it lasts around 45 days.
+
+If used twice a day, it lasts around 30 days (maximum).
+
+Marketplace availability questions:
+
+If a customer asks where products are available, reply that:
+
+“Our products are also available on Amazon and Flipkart.”
+
+Strictly avoid mentioning:
+
+Product names
+
+Product prices
+
+Coupon codes or discount codes`,
           },
           {
             role: "user",
@@ -156,4 +177,5 @@ async function replyToComment(commentId, message) {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
