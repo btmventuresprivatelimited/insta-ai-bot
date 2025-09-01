@@ -125,6 +125,8 @@ If a customer asks where products are available, reply that:
 
 “Our products are also available on Amazon and Flipkart.”
 
+we only ship within India. out of india order not accepted.
+
 Strictly avoid mentioning:
 
 Product names
@@ -177,5 +179,3 @@ async function replyToComment(commentId, message) {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
