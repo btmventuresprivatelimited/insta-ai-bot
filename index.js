@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 🔑 Environment variables
 const {
   OPENAI_API_KEY,
   INSTAGRAM_PAGE_ACCESS_TOKEN,
@@ -13,8 +14,8 @@ const {
   IG_USERNAME,
 } = process.env;
 
-// ⏱ Track replied threads
-const repliedThreads = new Set(); // Set of parent comment IDs
+// ⏱ Track replied threads (avoid duplicates)
+const repliedThreads = new Set();
 
 // ✅ Webhook verification
 app.get("/webhook", (req, res) => {
@@ -50,7 +51,7 @@ app.post("/webhook", async (req, res) => {
 
           // ⛔ Skip if comment is from our account
           if (username === IG_USERNAME) {
-            console.log("⛔ Skipping: Comment from own account.");
+            console.log("⛔ Skipping: Own account.");
             continue;
           }
 
@@ -60,9 +61,16 @@ app.post("/webhook", async (req, res) => {
             continue;
           }
 
-          // ⛔ Skip if asking for a link
+          // ⛔ Skip if asking for link
           if (isAskingForLink(commentText)) {
-            console.log("⛔ Skipping: Comment asking for link.");
+            console.log("⛔ Skipping: Link-related comment.");
+            continue;
+          }
+
+          // ✅ Check if comment is relevant (positive/negative only)
+          const replyNeeded = await shouldReply(commentText);
+          if (!replyNeeded) {
+            console.log("⛔ Skipping: Neutral/unrelated comment.");
             continue;
           }
 
@@ -95,7 +103,42 @@ function isAskingForLink(text) {
   );
 }
 
-// 🧠 Generate reply from OpenAI
+// 🧠 Decide whether to reply
+async function shouldReply(comment) {
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "o4-mini-2025-04-16",
+        messages: [
+          {
+            role: "system",
+            content: `Classify Instagram comments:
+- If comment is POSITIVE (praise, excitement, compliment) → Reply.
+- If comment is NEGATIVE (complaint, dissatisfaction, issue) → Reply.
+- If comment is NEUTRAL, spam, emoji-only, or unrelated → Do NOT reply.
+Respond ONLY with one word: "yes" (reply) or "no" (ignore).`,
+          },
+          { role: "user", content: comment },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY.trim()}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const answer = response.data.choices[0].message.content.trim().toLowerCase();
+    return answer === "yes";
+  } catch (error) {
+    console.error("❌ Error in shouldReply:", error.response?.data || error.message);
+    return false; // default → skip if uncertain
+  }
+}
+
+// 🧠 Generate reply content
 async function generateReply(comment, username) {
   try {
     const response = await axios.post(
@@ -105,38 +148,21 @@ async function generateReply(comment, username) {
         messages: [
           {
             role: "system",
-            content: `At Reginald Men, always reply to Instagram comments in a friendly, clear, and helpful tone. Follow these rules strictly:
+            content: `At Reginald Men, reply to Instagram comments in a friendly, clear, and helpful tone. Follow these rules:
 
-If comment shows negative sentiment (complaints, disappointment, poor experience):
-Reply → “For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.”
+- If comment is negative → “For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.”
+- If asking how long a product lasts →
+   • Once a day use → around 45 days  
+   • Twice a day use → around 30 days max
+- If asking where products are available → “Our products are also available on Amazon and Flipkart.”
+- If asking about shipping → “We only ship within India. Orders from outside India are not accepted.”
+- If asking for support/issues → “For any kind of issue, please reach out to us at info@reginaldmen.com.”
 
-If customer asks how long a product lasts:
-
-Once a day use → lasts around 45 days
-
-Twice a day use → lasts around 30 days (maximum)
-
-If customer asks where products are available:
-Reply → “Our products are also available on Amazon and Flipkart.”
-
-If customer asks about shipping:
-Reply → “We only ship within India. Orders from outside India are not accepted.”
-
-If customer asks for support or issues:
-Reply → “For any kind of issue, please reach out to us at info@reginaldmen.com
-.”
-
-Strictly avoid mentioning:
-
-Product names
-
-Product prices
-
-Coupon codes or discount codes`,
+Do NOT mention AI, bots, or personal names.`,
           },
           {
             role: "user",
-            content: `Instagram user ${`@` + username} commented: "${comment}"`,
+            content: `Instagram user @${username} commented: "${comment}"`,
           },
         ],
       },
@@ -150,10 +176,7 @@ Coupon codes or discount codes`,
 
     return response.data.choices[0].message.content.trim();
   } catch (error) {
-    console.error(
-      "❌ Error generating reply:",
-      error.response?.data || error.message
-    );
+    console.error("❌ Error generating reply:", error.response?.data || error.message);
     return null;
   }
 }
@@ -169,13 +192,10 @@ async function replyToComment(commentId, message) {
     });
     console.log("✅ Replied to comment:", res.data);
   } catch (error) {
-    console.error(
-      "❌ Error replying to comment:",
-      error.response?.data || error.message
-    );
+    console.error("❌ Error replying to comment:", error.response?.data || error.message);
   }
 }
 
+// 🚀 Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
