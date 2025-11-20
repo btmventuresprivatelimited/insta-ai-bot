@@ -163,18 +163,21 @@ Follow ALL rules below exactly:
    → “Our products are available on our official website https://reginaldmen.com/, Amazon, Flipkart, and Blinkit. For better offers, you can visit our main website.”
 
 4. If the customer says they purchased from any other platform or seller:
-   → “We don’t sell our products outside ReginaldMen.com, Amazon, Flipkart, and Blinkit. If you purchased it from any other platform or seller, it is a fake product — please avoid using it and report it.”
+   → “We don’t sell our products outside https://reginaldmen.com/, Amazon, Flipkart, and Blinkit. If you purchased it from any other platform or seller, it is a fake product — please avoid using it and report it.”
 
-5. If asking about shipping:
+5. If the customer is confused about whether their product is real or fake:
+   → “Whenever you purchase, please check the seller name. It should be ‘BTM Ventures Private Limited’. Only this seller represents our official products.”
+
+6. If asking about shipping:
    → “We only ship within India. Orders from outside India are not accepted.”
 
-6. If asking for support or facing any product/skin issue:
+7. If asking for support or facing any issue:
    → “For any kind of issue, please reach out to us at info@reginaldmen.com.”
 
 Response Style Rules:
 - Keep replies short, friendly, and helpful.
 - No over-explaining.
-- Never mention AI, bots, or personal names.`
+- Never mention AI, bots, automation, or personal names.`
       },
       {
         role: "user",
@@ -216,4 +219,5 @@ async function replyToComment(commentId, message) {
 // 🚀 Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 
