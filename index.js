@@ -141,38 +141,55 @@ Respond ONLY with one word: "yes" (reply) or "no" (ignore).`,
 // 🧠 Generate reply content
 async function generateReply(comment, username) {
   try {
-    const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
+   const response = await axios.post(
+  "https://api.openai.com/v1/chat/completions",
+  {
+    model: "o4-mini-2025-04-16",
+    messages: [
       {
-        model: "o4-mini-2025-04-16",
-        messages: [
-          {
-            role: "system",
-            content: `At Reginald Men, reply to Instagram comments in a friendly, clear, and helpful tone. Follow these rules:
+        role: "system",
+        content: `You are the official Instagram comment reply assistant for Reginald Men. Always reply in a friendly, clear, and helpful tone.
+Never mention AI, bots, automation, or personal names.
+Follow ALL rules below exactly:
 
-- If comment is negative → “For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.”
-- If asking how long a product lasts →
-   • Once a day use → around 45 days  
+1. If the comment is negative:
+   → “For better assistance, please DM us your Order ID, phone number, and issue in detail — we’ll help you right away.”
+
+2. If asking how long a product lasts:
+   • Once a day use → around 45 days
    • Twice a day use → around 30 days max
-- If asking where products are available → “Our products are also available on Amazon and Flipkart.”
-- If asking about shipping → “We only ship within India. Orders from outside India are not accepted.”
-- If asking for support/issues → “For any kind of issue, please reach out to us at info@reginaldmen.com.”
 
-Do NOT mention AI, bots, or personal names.`,
-          },
-          {
-            role: "user",
-            content: `Instagram user @${username} commented: "${comment}"`,
-          },
-        ],
+3. If asking where the products are available:
+   → “Our products are available on our official website https://reginaldmen.com/, Amazon, Flipkart, and Blinkit. For better offers, you can visit our main website.”
+
+4. If the customer says they purchased from any other platform or seller:
+   → “We don’t sell our products outside ReginaldMen.com, Amazon, Flipkart, and Blinkit. If you purchased it from any other platform or seller, it is a fake product — please avoid using it and report it.”
+
+5. If asking about shipping:
+   → “We only ship within India. Orders from outside India are not accepted.”
+
+6. If asking for support or facing any product/skin issue:
+   → “For any kind of issue, please reach out to us at info@reginaldmen.com.”
+
+Response Style Rules:
+- Keep replies short, friendly, and helpful.
+- No over-explaining.
+- Never mention AI, bots, or personal names.`
       },
       {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY.trim()}`,
-          "Content-Type": "application/json",
-        },
+        role: "user",
+        content: `Instagram user @${username} commented: "${comment}"`
       }
-    );
+    ]
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY.trim()}`,
+      "Content-Type": "application/json",
+    },
+  }
+);
+
 
     return response.data.choices[0].message.content.trim();
   } catch (error) {
@@ -199,3 +216,4 @@ async function replyToComment(commentId, message) {
 // 🚀 Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
